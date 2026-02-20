@@ -1,0 +1,5 @@
+{
+  "name": "PROTOTIPO JUXA SO 2026",
+  "description": "Sistema de generación de proyectos de sentencia adaptativo para el Poder Judicial, capaz de analizar expedientes y redactar resoluciones en diversas materias (Penal, Civil, Mercantil, etc.).",
+  "requestFramePermissions": []
+}
