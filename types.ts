@@ -42,7 +42,8 @@ export enum UserRole {
 
 export enum AppMode {
   LANDING = 'LANDING',
-  GENERATOR = 'GENERATOR', // Modo clásico con sidebar y archivos
+  GENERATOR = 'GENERATOR',
+  ROLES = 'ROLES', // Modo clásico con sidebar y archivos
   EDITOR = 'EDITOR',       // Modo pantalla completa (Split View / Canva / Blanco)
   CHAT = 'CHAT',           // Nuevo: Chat tradicional
   APPS = 'APPS',            // Nuevo: Grid de aplicaciones
