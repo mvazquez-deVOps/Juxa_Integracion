@@ -1,4 +1,3 @@
-
 export interface SentenceRequest {
   caseFiles?: File[];
   judgeNotes: string;
@@ -42,6 +41,8 @@ export enum UserRole {
 
 export enum AppMode {
   LANDING = 'LANDING',
+  LOGIN = 'LOGIN',   
+  REGISTER = 'REGISTER',
   GENERATOR = 'GENERATOR', // Modo clásico con sidebar y archivos
   EDITOR = 'EDITOR',       // Modo pantalla completa (Split View / Canva / Blanco)
   CHAT = 'CHAT',           // Nuevo: Chat tradicional
@@ -73,4 +74,15 @@ export interface LegislativeCitation {
 export interface SemanticAnalysisResponse {
   citations: LegislativeCitation[];
   usageMetadata?: UsageMetadata;
+}
+
+export type UserType = 'PERSONAL' | 'BUSINESS';
+
+export interface UserData {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  userType?: UserType;
+  personType?: UserType;
 }
