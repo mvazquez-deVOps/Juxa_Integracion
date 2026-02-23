@@ -57,7 +57,9 @@ export enum AppMode {
   ENTERPRISE = 'ENTERPRISE', // Nuevo: Modo Empresa (Simulado)
   ARGUMENT_BUILDER = 'ARGUMENT_BUILDER', // Constructor de Argumentos Standalone
   DOCUMENT_ANALYSIS = 'DOCUMENT_ANALYSIS', // Nuevo: Análisis de Documentos Standalone
-  SENTENCE_BUILDER = 'SENTENCE_BUILDER' // Nuevo: Magistrado AI Standalone
+  SENTENCE_BUILDER = 'SENTENCE_BUILDER', // Nuevo: Magistrado AI Standalone
+  PRIVACY = 'PRIVACY',
+  TERMS = 'TERMS'
 }
 
 export interface GenerationState {

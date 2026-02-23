@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserData, UserType } from '../types'; 
 import { Eye, EyeOff, ShieldCheck, MessageSquare} from 'lucide-react';
 import { ApiService } from '../services/api'; 
+import { LegalView } from './LegalView';
 
 
 interface AuthViewProps {
@@ -17,8 +18,9 @@ export const AuthView: React.FC<AuthViewProps> = ({ onNavigate }) => {
     const [phone, setPhone] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
-
-  // Mantenemos el modo de recuperación de contraseña para el futuro
+    // PARA MOSTRAR DOCUMENTOS LEGALES
+    const [showLegal, setShowLegal] = useState<'NONE' | 'PRIVACY' | 'TERMS'>('NONE');
+    // MOODO RECUPERAR CONTRASEÑA
     const [mode, setMode] = useState<'login' | 'register' | 'forgot-password' | 'verify-code'>('login');
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -28,7 +30,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onNavigate }) => {
 
         try {
         let response;
-
         if (isRegister) {
             response = await ApiService.auth.register({ name, email, password, phone });
         } else {
@@ -50,13 +51,15 @@ export const AuthView: React.FC<AuthViewProps> = ({ onNavigate }) => {
 
       // 3. Avisamos a App.tsx que el login fue exitoso y pasamos el usuario
     onNavigate('LANDING', sessionUser.userType, sessionUser);
-
     } catch (err: any) {
         setError(err.message || "Error al conectar con los servicios de JUXA.");
     } finally {
         setIsLoading(false);
     }
 };
+    if (showLegal !== 'NONE') {
+            return <LegalView documentType={showLegal} onBack={() => setShowLegal('NONE')} />;
+        }
 
 return (
    <div className="min-h-screen flex flex-col bg-[#050505]">
@@ -172,8 +175,8 @@ return (
                             soporte@juxa.mx
                         </a>
                         <div className="flex gap-4 border-l border-white/10 pl-6">
-                            <a href="/AVISO_DE_PRIVACIDAD_INTEGRAL_JUXA.pdf" target="_blank" className="hover:text-white transition-colors">Privacidad</a>
-                            <a href="/TÉRMINOS_Y_CONDICIONES_JUXA.pdf" target="_blank" className="hover:text-white transition-colors">Términos</a>
+                            <button onClick={() => setShowLegal('PRIVACY')} className="hover:text-white transition-colors uppercase">Privacidad</button>
+                            <button onClick={() => setShowLegal('TERMS')} className="hover:text-white transition-colors uppercase">Términos</button>
                         </div>
                     </div>
                 </div>
