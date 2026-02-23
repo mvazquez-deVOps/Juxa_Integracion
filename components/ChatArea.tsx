@@ -1,44 +1,51 @@
-import { useEffect, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import { User, Paperclip, Mic, Copy, Check } from 'lucide-react';
-//import { Message } from '../App'; 
 import { TypingIndicator } from './TypingIndicator';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message } from '../types'; // tipos
 
-type ChatAreaProps = {
-  messages: Message[];
-  isTyping?: boolean; // <--- AGREGAMOS ESTA LÍNEA
-};
-
-export function ChatArea({ messages, isTyping }: ChatAreaProps) { // <--- RECIBIMOS isTyping AQUÍ
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  // Auto-scroll al final del chat
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  type ChatAreaProps = {
+    messages?: Message[];    
+    isTyping?: boolean;      
+    selectedRole: string | null; 
+    onTokenUpdate: (metadata: any) => void;
+    setMessages: Dispatch<SetStateAction<Message[]>>; 
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]); // Agregamos isTyping al efecto para que haga scroll cuando aparezca el indicador
+  export function ChatArea({ 
+    messages = [], 
+    isTyping = false,
+    selectedRole,
+    onTokenUpdate 
+  }: ChatAreaProps) {
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleCopy = async (text: string, id: string) => {
-    try {
-      const cleanText = text
-        .replace(/[#*`_~]/g, '')
-        .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-        .replace(/^-\s/gm, '')
-        .replace(/^\d+\.\s/gm, '')
-        .trim();
-      await navigator.clipboard.writeText(cleanText);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000); // Reset del icono tras 2s
-    } catch (err) {
-      console.error("Error al copiar:", err);
-    }
-  };
+
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+      scrollToBottom();
+    }, [messages, isTyping]); // Agregamos isTyping al efecto para que haga scroll cuando aparezca el indicador
+
+    const handleCopy = async (text: string, id: string) => {
+      try {
+        const cleanText = text
+          .replace(/[#*`_~]/g, '')
+          .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+          .replace(/^-\s/gm, '')
+          .replace(/^\d+\.\s/gm, '')
+          .trim();
+        await navigator.clipboard.writeText(cleanText);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000); // Reset del icono tras 2s
+      } catch (err) {
+        console.error("Error al copiar:", err);
+      }
+    };
   return (
     <div className="min-w-0 p-4 md:p-8 space-y-6 md:space-y-12 bg-background">
       {messages.map((message) => (

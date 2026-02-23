@@ -1,4 +1,3 @@
-
 export interface SentenceRequest {
   caseFiles?: File[];
   judgeNotes: string;
@@ -37,13 +36,21 @@ export enum UserRole {
   JUZGADOR = 'JUZGADOR',
   FISCALIA = 'FISCALÍA',
   POSTULANTE = 'POSTULANTE',
-  AUTORIDAD = 'AUTORIDAD'
+  AUTORIDAD = 'AUTORIDAD',
+  ESTUDIANTE = 'ESTUDIANTE',
+  ASISTENTE = 'ASISTENTE',
+  ACADEMICO = 'ACADEMICO',
+  GOBIERNO = 'GOBIERNO',
+  PODER_JUDICIAL = 'PODER_JUDICIAL',
+  COBRANZA = 'COBRANZA'
 }
 
 export enum AppMode {
   LANDING = 'LANDING',
-  GENERATOR = 'GENERATOR',
   ROLES = 'ROLES', // Modo clásico con sidebar y archivos
+  LOGIN = 'LOGIN',   
+  REGISTER = 'REGISTER',
+  GENERATOR = 'GENERATOR', // Modo clásico con sidebar y archivos
   EDITOR = 'EDITOR',       // Modo pantalla completa (Split View / Canva / Blanco)
   CHAT = 'CHAT',           // Nuevo: Chat tradicional
   APPS = 'APPS',            // Nuevo: Grid de aplicaciones
@@ -59,10 +66,18 @@ export interface GenerationState {
   result: SentenceResponse | null;
 }
 
-export interface ChatMessage {
-  role: 'user' | 'model';
-  text: string;
+// En types.ts
+export interface Message {
+  id: string;                               // Necesario para el key={message.id}
+  role: 'user' | 'assistant' | 'model';      // Agregamos assistant
+  content: string;                           // Tu componente usa .content
+  timestamp: number | string | Date;         // Para el new Date(message.timestamp)
+  isTyping?: boolean;                        // Para el loading individual
+  attachmentType?: 'image' | 'document' | 'pdf' | 'voice'; 
+  attachmentUrl?: string;
+  attachmentName?: string;
 }
+
 
 export interface LegislativeCitation {
   law: string;
@@ -74,4 +89,15 @@ export interface LegislativeCitation {
 export interface SemanticAnalysisResponse {
   citations: LegislativeCitation[];
   usageMetadata?: UsageMetadata;
+}
+
+export type UserType = 'PERSONAL' | 'BUSINESS';
+
+export interface UserData {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  userType?: UserType;
+  personType?: UserType;
 }

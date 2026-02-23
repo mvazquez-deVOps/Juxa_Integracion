@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
@@ -7,7 +6,7 @@ import { AppsGrid } from './components/AppsGrid';
 import { ChatInterface } from './components/ChatInterface';
 import { ArgumentBuilderPanel } from './components/ArgumentBuilderPanel';
 import { DocumentAnalysisPanel } from './components/DocumentAnalysisPanel';
-import { SentenceGeneratorPanel } from './components/SentenceGeneratorPanel'; // Import New Component
+import { SentenceGeneratorPanel } from './components/SentenceGeneratorPanel';
 import { generateSentence, digitizeDocument } from './services/geminiService';
 import { SentenceResponse, GenerationState, UserRole, UsageMetadata, AppMode, LegalMatter } from './types';
 import { Cpu, MessageSquare, FileText, Wand2, ArrowRight, LayoutTemplate, Grid, Command, PenTool, FilePlus, Building2, Sparkles, GripVertical, Upload, Bot, Zap, FolderOpen, Briefcase, BrainCircuit, Fingerprint, Layers, ChevronRight, DollarSign } from 'lucide-react';
@@ -15,6 +14,9 @@ import { Landing } from './components/Landing';
 import { ChatArea } from './components/ChatArea';
 import { ChatInput } from './components/ChatInput';
 import { RoleSelection } from './components/RoleSelection';
+import { AuthView } from './components/AuthView';
+import {Message} from './types'; 
+
 // === PRICING ENGINE CONSTANTS ===
 // Base Google Cost per 1K Tokens (Approximate Blended)
 const PRICE_FLASH_INPUT = 0.0001;
@@ -26,13 +28,20 @@ const PRICE_PRO_OUTPUT = 0.0100;
 const JUXA_MARKUP = 6;
 
 function App() {
+    // === ESTADOS DE AUTENTICACIÓN (NUEVOS) ===
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const [isCheckingSession, setIsCheckingSession] = useState(true);
+    const [chatMessages, setChatMessages] = useState<Message[]>([]);
+
+    // === ESTADOS ORIGINALES DE TU APP ===
     const [appMode, setAppMode] = useState<AppMode>(AppMode.LANDING);
-    const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [state, setState] = useState<GenerationState & { loadingMessage?: string }>({
         isLoading: false,
         error: null,
         result: null,
     });
+
     const [currentFiles, setCurrentFiles] = useState<File[]>([]);
     const [activeFileIndex, setActiveFileIndex] = useState<number>(0);
     const [currentRole, setCurrentRole] = useState<UserRole>(UserRole.POSTULANTE);
@@ -40,6 +49,10 @@ function App() {
     // TRACKING
     const [totalTokens, setTotalTokens] = useState<number>(0);
     const [totalCost, setTotalCost] = useState<number>(0);
+
+    const [selectedRole, setSelectedRole] = useState<string | null>(null);
+
+
 
     const [initialActiveTab, setInitialActiveTab] = useState<'project' | 'analytics' | 'semantic' | 'ratio' | 'visualization' | undefined>(undefined);
     const [isSplitView, setIsSplitView] = useState(false);
@@ -61,6 +74,7 @@ function App() {
         setSelectedRole(role);
         setAppMode(AppMode.CHAT);
     };
+
     const startResizing = (e: React.MouseEvent) => {
         setIsResizing(true);
         e.preventDefault();
@@ -79,6 +93,7 @@ function App() {
         }
     };
 
+    // Efecto para escuchar el mouse en toda la ventana
     useEffect(() => {
         window.addEventListener('mousemove', resize);
         window.addEventListener('mouseup', stopResizing);
@@ -87,30 +102,54 @@ function App() {
             window.removeEventListener('mouseup', stopResizing);
         };
     }, [isResizing]);
-    // ------------------------------
 
-    // === INTELLIGENT COST CALCULATOR ===
+    // === EFECTOS ===
+
+    // 1. Efecto de Autenticación
+    useEffect(() => {
+        const savedUser = localStorage.getItem('juxa_user_data');
+        const token = localStorage.getItem('juxa_token');
+
+        if (savedUser && token) {
+            try {
+                setUser(JSON.parse(savedUser));
+                setIsAuthenticated(true);
+            } catch (e) {
+                localStorage.clear();
+            }
+        }
+        setIsCheckingSession(false);
+    }, []);
+
+    // === FUNCIONES DE LOGICA DE AUTENTICACIÓN ===
+    const handleAuthNavigate = (view: string, profile?: any, userData?: any) => {
+        if (userData) {
+            setUser(userData);
+            setIsAuthenticated(true);
+            setAppMode(AppMode.LANDING);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.clear();
+        setIsAuthenticated(false);
+        setUser(null);
+        setAppMode(AppMode.LANDING);
+    };
+
+    // === FUNCIONES ORIGINALES DE TU APP ===
     const updateTokens = (metadata: UsageMetadata | undefined) => {
         if (metadata) {
-            // 1. Update Raw Token Count (Technical View)
             const realTokens = metadata.totalTokenCount || 0;
             setTotalTokens(prev => prev + realTokens);
-
-            // 2. Calculate Financial Cost (Business View)
-            const model = metadata.model || 'gemini-3-flash-preview'; // Default to Flash if unknown
+            const model = metadata.model || 'gemini-3-flash-preview';
             const isPro = model.includes('pro');
-
             const pInput = isPro ? PRICE_PRO_INPUT : PRICE_FLASH_INPUT;
             const pOutput = isPro ? PRICE_PRO_OUTPUT : PRICE_FLASH_OUTPUT;
-
-            // Calculate base cost for this transaction
             const inputCost = (metadata.promptTokenCount / 1000) * pInput;
             const outputCost = (metadata.candidatesTokenCount / 1000) * pOutput;
             const baseCost = inputCost + outputCost;
-
-            // Apply 6x Markup
             const juxaPrice = baseCost * JUXA_MARKUP;
-
             setTotalCost(prev => prev + juxaPrice);
         }
     };
@@ -266,7 +305,20 @@ function App() {
         setIsSplitView(true);
     };
 
-    const LandingPage = () => (
+    // === PROTECCIÓN DE RUTAS (GUARDS) ===
+    // Esto asegura que el login aparezca primero
+
+    if (isCheckingSession) {
+        return <div className="h-screen bg-[#050505] flex items-center justify-center"></div>;
+    }
+
+    if (!isAuthenticated) {
+        return <AuthView onNavigate={handleAuthNavigate} />;
+    }
+
+    // === COMPONENTES INTERNOS ORIGINALES ===
+
+    const LandingPage = ({ onNavigate, onStartGeneral }: { onNavigate: (mode: AppMode) => void, onStartGeneral: () => void }) => (
         <div className="flex-1 flex flex-col items-center justify-start p-8 relative overflow-y-auto scrollbar-hide">
             {/* Background Ambient */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -437,6 +489,8 @@ function App() {
                         <ChatArea
                             selectedRole={selectedRole}
                             onTokenUpdate={updateTokens}
+                            messages={chatMessages} 
+                           setMessages={setChatMessages}
                         />
                     </div>
                 )}
@@ -480,9 +534,9 @@ function App() {
                     </>
                 )}
 
-                {/* 5. MODO EDITOR / CANVAS */}
+                {/* MODO EDITOR */}
                 {appMode === AppMode.EDITOR && (
-                    <div className="flex-1 h-full">
+                    <div className="flex-1 h-full relative print:h-auto print:overflow-visible">
                         <PreviewArea
                             state={state}
                             setState={setState}
@@ -497,40 +551,73 @@ function App() {
                     </div>
                 )}
 
-                {/* 6. MODOS STANDALONE (Argumentos, Sentencias, Análisis) */}
                 {appMode === AppMode.ARGUMENT_BUILDER && (
-                    <div className="flex-1 h-full overflow-y-auto">
-                        <ArgumentBuilderPanel mode="standalone" onTokenUpdate={updateTokens} onElevate={handleElevateFromStandalone} role={currentRole} />
-                    </div>
-                )}
-                {appMode === AppMode.SENTENCE_BUILDER && (
-                    <div className="flex-1 h-full overflow-y-auto">
-                        <SentenceGeneratorPanel onTokenUpdate={updateTokens} onElevate={handleElevateFromStandalone} onClose={() => setAppMode(AppMode.APPS)} />
-                    </div>
-                )}
-                {appMode === AppMode.DOCUMENT_ANALYSIS && (
-                    <div className="flex-1 h-full overflow-y-auto">
-                        <DocumentAnalysisPanel role={currentRole} onTokenUpdate={updateTokens} onElevate={handleElevateFromStandalone} onClose={() => setAppMode(AppMode.APPS)} />
+                    <div className="flex-1 h-full relative overflow-y-auto">
+                        <ArgumentBuilderPanel
+                            mode="standalone"
+                            onTokenUpdate={updateTokens}
+                            onElevate={handleElevateFromStandalone}
+                            role={currentRole}
+                        />
                     </div>
                 )}
 
-                {/* 7. MODO APPS GRID (Selector de herramientas) */}
+                {appMode === AppMode.SENTENCE_BUILDER && (
+                    <div className="flex-1 h-full relative overflow-y-auto">
+                        <SentenceGeneratorPanel
+                            onTokenUpdate={updateTokens}
+                            onElevate={handleElevateFromStandalone}
+                            onClose={() => setAppMode(AppMode.APPS)}
+                        />
+                    </div>
+                )}
+
+                {appMode === AppMode.DOCUMENT_ANALYSIS && (
+                    <div className="flex-1 h-full relative overflow-y-auto">
+                        <DocumentAnalysisPanel
+                            role={currentRole}
+                            onTokenUpdate={updateTokens}
+                            onElevate={handleElevateFromStandalone}
+                            onClose={() => setAppMode(AppMode.APPS)}
+                        />
+                    </div>
+                )}
+
+                {appMode === AppMode.CHAT && (
+                    <div className="flex-1 h-full">
+                        <ChatInterface currentRole={currentRole} />
+                    </div>
+                )}
+
                 {appMode === AppMode.APPS && (
                     <div className="flex-1 h-full">
                         <AppsGrid
-                            onNavigate={(mode) => mode === AppMode.EDITOR ? startCanvasMode(true) : setAppMode(mode)}
-                            onAction={(cost) => setTotalCost(prev => prev + (cost * 0.0001 * JUXA_MARKUP))}
+                            onNavigate={(mode) => {
+                                if (mode === AppMode.EDITOR) {
+                                    startCanvasMode(true);
+                                } else {
+                                    setAppMode(mode);
+                                }
+                            }}
+                            onAction={(cost) => {
+                                setTotalCost(prev => prev + (cost * 0.0001 * JUXA_MARKUP));
+                            }}
                         />
                     </div>
                 )}
 
             </main>
 
-            {/* Footer */}
+            {/* Footer MODIFICADO CON BOTON DE SALIR */}
             <div className="bg-[#050505] text-slate-600 text-[10px] p-2 flex justify-between items-center px-4 border-t border-white/5 uppercase tracking-widest font-bold print:hidden">
-                <span className="flex items-center cursor-pointer hover:text-white transition-colors" onClick={() => setAppMode(AppMode.LANDING)}>
-                    JUXA • 2026 • MODO: {currentRole}
-                </span>
+                <div className="flex items-center gap-4">
+                    <span className="flex items-center cursor-pointer hover:text-white transition-colors" onClick={() => setAppMode(AppMode.LANDING)}>
+                        JUXA • 2026 • MODO: {currentRole} • {user?.name || ''}
+                    </span>
+                    <button onClick={handleLogout} className="text-red-500/80 hover:text-red-400 font-bold transition-colors">
+                        Cerrar Sesión
+                    </button>
+                </div>
                 <div className="flex items-center space-x-6">
                     <span className="flex items-center text-slate-500" title="Tokens Procesados">
                         <Cpu className="w-3 h-3 mr-1" />
@@ -546,7 +633,7 @@ function App() {
     );
 }
 
-// Wrapper component
+// Wrapper component (Exactamente como lo tenías)
 const PreviewArea = ({ state, setState, currentFiles, updateTokens, activeFileIndex, setActiveFileIndex, currentRole, initialActiveTab, forceSplitView }: any) => (
     <>
         {state.error && (
