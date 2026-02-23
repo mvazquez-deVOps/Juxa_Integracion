@@ -360,9 +360,7 @@ function App() {
                         </p>
 
                         <div className="mt-8">
-                            <span className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-white text-black text-xs font-bold tracking-widest uppercase hover:bg-slate-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-                                Iniciar <Sparkles className="w-3 h-3 ml-2" />
-                            </span>
+                            
                         </div>
                     </div>
                 </div>
@@ -454,48 +452,48 @@ function App() {
 
     return (
         <div className="h-screen flex flex-col bg-[#050505] text-white">
-            {/* HEADER: Se oculta en la Landing para mantener el diseño limpio */}
+            {/* 1. HEADER - Protegido contra el crash de 'null' */}
             <Header
-                currentRole={currentRole}
-                onRoleChange={setCurrentRole}
+                currentRole={(selectedRole || "Invitado") as any}
+                onRoleChange={setSelectedRole}
                 onGoHome={() => setAppMode(AppMode.LANDING)}
                 showHomeButton={appMode !== AppMode.LANDING}
             />
 
-            <main
-                className="flex-1 flex overflow-hidden relative"
+            <main className="flex-1 flex overflow-hidden relative"
                 onMouseMove={(e: any) => isResizing && resize(e)}
                 onMouseUp={stopResizing}
             >
-
-                {/* 1. VISTA LANDING (Prototipo con botón Iniciar conectado) */}
+                {/* --- FLUJO PRINCIPAL --- */}
                 {appMode === AppMode.LANDING && (
                     <LandingPage
-                        onNavigate={(mode) => setAppMode(mode)}
-                        onStartGeneral={handleStartOriginalFlow}
+                        onNavigate={() => setAppMode(AppMode.ROLES)}
+                        onStartGeneral={() => setAppMode(AppMode.ROLES)}
                     />
                 )}
 
-                {/* 2. VISTA SELECCIÓN DE ROLES (Trasplantada del Original) */}
+                {/* B. SELECCIÓN DE ROLES (Las cards del repo 2) */}
                 {appMode === AppMode.ROLES && (
                     <div className="flex-1 h-full overflow-y-auto bg-black animate-fade-in">
                         <RoleSelection onRoleSelect={handleRoleSelection} />
                     </div>
                 )}
 
-                {/* 3. VISTA CHAT (Trasplantada del Original) */}
+                {/* C. CHAT (Pantalla completa, sin sidebar a la derecha) */}
                 {appMode === AppMode.CHAT && (
                     <div className="flex-1 h-full bg-[#050505]">
                         <ChatArea
                             selectedRole={selectedRole}
                             onTokenUpdate={updateTokens}
                             messages={chatMessages} 
-                           setMessages={setChatMessages}
+                            setMessages={setChatMessages}
                         />
                     </div>
                 )}
 
-                {/* 4. MODO GENERADOR (Con Sidebar Redimensionable) */}
+                {/* --- TUS MODOS DE TRABAJO (Recuperados) --- */}
+
+                {/* D. MODO GENERADOR (Sidebar + Documento) */}
                 {appMode === AppMode.GENERATOR && (
                     <>
                         <div
@@ -507,162 +505,91 @@ function App() {
                                 onGenerate={handleGenerate}
                                 onFileSelect={setCurrentFiles}
                                 isLoading={state.isLoading}
-                                currentRole={currentRole}
+                                currentRole={selectedRole || "Invitado" as any}
                                 activeFileIndex={activeFileIndex}
                                 onActiveFileChange={setActiveFileIndex}
                             />
-                            {/* Tirador para redimensionar */}
-                            <div
-                                onMouseDown={startResizing}
-                                className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500/50 z-50 flex items-center justify-center group"
-                            >
+                            <div onMouseDown={startResizing} className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500/50 z-50 flex items-center justify-center group">
                                 <div className="h-8 w-1 bg-slate-700 rounded group-hover:bg-blue-400 transition-colors"></div>
                             </div>
                         </div>
                         <div className="flex-1 h-full min-w-0">
-                            <PreviewArea
-                                state={state}
-                                setState={setState}
-                                currentFiles={currentFiles}
-                                updateTokens={updateTokens}
+                            <DocumentPreview
+                                data={state.result}
+                                isLoading={state.isLoading}
+                                loadingMessage={state.loadingMessage}
+                                uploadedFiles={currentFiles}
+                                onTokenUpdate={updateTokens}
                                 activeFileIndex={activeFileIndex}
-                                setActiveFileIndex={setActiveFileIndex}
-                                currentRole={currentRole}
-                                forceSplitView={false}
+                                onActiveFileChange={setActiveFileIndex}
+                                currentRole={selectedRole || "Invitado" as any}
                             />
                         </div>
                     </>
                 )}
 
-                {/* MODO EDITOR */}
+                {/* E. MODO EDITOR (Pantalla completa de edición) */}
                 {appMode === AppMode.EDITOR && (
                     <div className="flex-1 h-full relative print:h-auto print:overflow-visible">
-                        <PreviewArea
-                            state={state}
-                            setState={setState}
-                            currentFiles={currentFiles}
-                            updateTokens={updateTokens}
+                        <DocumentPreview
+                            data={state.result}
+                            isLoading={state.isLoading}
+                            loadingMessage={state.loadingMessage}
+                            uploadedFiles={currentFiles}
+                            onTokenUpdate={updateTokens}
                             activeFileIndex={activeFileIndex}
-                            setActiveFileIndex={setActiveFileIndex}
-                            currentRole={currentRole}
+                            onActiveFileChange={setActiveFileIndex}
+                            currentRole={selectedRole || "Invitado" as any}
                             initialActiveTab={initialActiveTab}
                             forceSplitView={isSplitView}
                         />
                     </div>
                 )}
 
+                {/* F. TUS HERRAMIENTAS STANDALONE (Argument Builder, etc.) */}
                 {appMode === AppMode.ARGUMENT_BUILDER && (
                     <div className="flex-1 h-full relative overflow-y-auto">
                         <ArgumentBuilderPanel
                             mode="standalone"
                             onTokenUpdate={updateTokens}
                             onElevate={handleElevateFromStandalone}
-                            role={currentRole}
+                            role={selectedRole || "Invitado" as any}
                         />
                     </div>
                 )}
 
-                {appMode === AppMode.SENTENCE_BUILDER && (
-                    <div className="flex-1 h-full relative overflow-y-auto">
-                        <SentenceGeneratorPanel
-                            onTokenUpdate={updateTokens}
-                            onElevate={handleElevateFromStandalone}
-                            onClose={() => setAppMode(AppMode.APPS)}
-                        />
-                    </div>
-                )}
-
-                {appMode === AppMode.DOCUMENT_ANALYSIS && (
-                    <div className="flex-1 h-full relative overflow-y-auto">
-                        <DocumentAnalysisPanel
-                            role={currentRole}
-                            onTokenUpdate={updateTokens}
-                            onElevate={handleElevateFromStandalone}
-                            onClose={() => setAppMode(AppMode.APPS)}
-                        />
-                    </div>
-                )}
-
-                {appMode === AppMode.CHAT && (
-                    <div className="flex-1 h-full">
-                        <ChatInterface currentRole={currentRole} />
-                    </div>
-                )}
-
+                {/* G. GRID DE APPS */}
                 {appMode === AppMode.APPS && (
                     <div className="flex-1 h-full">
                         <AppsGrid
-                            onNavigate={(mode) => {
-                                if (mode === AppMode.EDITOR) {
-                                    startCanvasMode(true);
-                                } else {
-                                    setAppMode(mode);
-                                }
-                            }}
-                            onAction={(cost) => {
-                                setTotalCost(prev => prev + (cost * 0.0001 * JUXA_MARKUP));
-                            }}
+                            onNavigate={(mode) => setAppMode(mode)}
+                            onAction={(cost) => setTotalCost(prev => prev + (cost * 0.0001 * JUXA_MARKUP))}
                         />
                     </div>
                 )}
-
             </main>
 
-            {/* Footer MODIFICADO CON BOTON DE SALIR */}
+            {/* FOOTER - Tu footer completo */}
             <div className="bg-[#050505] text-slate-600 text-[10px] p-2 flex justify-between items-center px-4 border-t border-white/5 uppercase tracking-widest font-bold print:hidden">
                 <div className="flex items-center gap-4">
-                    <span className="flex items-center cursor-pointer hover:text-white transition-colors" onClick={() => setAppMode(AppMode.LANDING)}>
-                        JUXA • 2026 • MODO: {currentRole} • {user?.name || ''}
+                    <span className="cursor-pointer hover:text-white transition-colors" onClick={() => setAppMode(AppMode.LANDING)}>
+                        JUXA • 2026 • MODO: {selectedRole || 'SIN ROL'} • {user?.name || ''}
                     </span>
                     <button onClick={handleLogout} className="text-red-500/80 hover:text-red-400 font-bold transition-colors">
                         Cerrar Sesión
                     </button>
                 </div>
                 <div className="flex items-center space-x-6">
-                    <span className="flex items-center text-slate-500" title="Tokens Procesados">
-                        <Cpu className="w-3 h-3 mr-1" />
+                    <span className="flex items-center text-slate-500">
                         TOKENS: {totalTokens.toLocaleString()}
                     </span>
-                    <span className="flex items-center text-emerald-600" title={`Costo JUXA (Markup ${JUXA_MARKUP}x sobre Google Cloud)`}>
-                        <DollarSign className="w-3 h-3 mr-1" />
+                    <span className="flex items-center text-emerald-600">
                         COSTO: ${totalCost.toFixed(4)} USD
                     </span>
                 </div>
             </div>
         </div>
     );
-}
-
-// Wrapper component (Exactamente como lo tenías)
-const PreviewArea = ({ state, setState, currentFiles, updateTokens, activeFileIndex, setActiveFileIndex, currentRole, initialActiveTab, forceSplitView }: any) => (
-    <>
-        {state.error && (
-            <div className="absolute top-4 left-4 right-4 z-50 bg-red-900/90 border border-red-700 text-white px-4 py-3 rounded-lg shadow-lg flex items-center animate-fade-in backdrop-blur-sm print:hidden">
-                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {state.error}
-                <button
-                    onClick={() => setState((prev: any) => ({ ...prev, error: null }))}
-                    className="ml-auto text-white/60 hover:text-white"
-                >
-                    ✕
-                </button>
-            </div>
-        )}
-        <DocumentPreview
-            data={state.result}
-            isLoading={state.isLoading}
-            loadingMessage={state.loadingMessage}
-            uploadedFiles={currentFiles}
-            onTokenUpdate={updateTokens}
-            activeFileIndex={activeFileIndex}
-            onActiveFileChange={setActiveFileIndex}
-            currentRole={currentRole}
-            initialActiveTab={initialActiveTab}
-            forceSplitView={forceSplitView}
-        />
-    </>
-);
+};
 
 export default App;

@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   Gavel, GraduationCap, BookOpen, University, 
-  Briefcase, Landmark, Receipt, Scale, ChevronRight 
+  Briefcase, Landmark, Receipt, Scale, ChevronRight,
+  BrainCircuit // Añadimos este para el Icono central
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -10,6 +11,7 @@ interface RoleSelectionProps {
 }
 
 const ROLES = [
+  // ... (Tus roles se mantienen igual)
   {
     id: UserRole.POSTULANTE,
     label: 'Abogado Postulante',
@@ -62,28 +64,43 @@ const ROLES = [
 
 export const RoleSelection: React.FC<RoleSelectionProps> = ({ onRoleSelect }) => {
   return (
-    <div className="min-h-full w-full flex flex-col items-center justify-center p-6 bg-[#050505]">
-      <div className="max-w-4xl w-full space-y-8">
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl font-bold text-white tracking-tight">Selecciona tu Perfil</h2>
-          <p className="text-slate-400">JUXA adaptará su lenguaje y herramientas a tu especialidad.</p>
+    <div className="min-h-screen w-full flex flex-col items-center justify-start py-12 px-6 bg-black">
+      {/* 1. Neural Orb Icon (Copiado de tu Landing para consistencia) */}
+      <div className="relative w-20 h-20 mb-6">
+          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400 to-blue-600 rounded-full animate-pulse blur-md opacity-50"></div>
+          <div className="absolute inset-1 bg-black rounded-full z-10"></div>
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+              <BrainCircuit className="w-10 h-10 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+          </div>
+          <div className="absolute -inset-2 border border-white/10 rounded-full animate-[spin_10s_linear_infinite]"></div>
+      </div>
+
+      <div className="max-w-4xl w-full space-y-10">
+        <div className="text-center space-y-3">
+          <h2 className="text-4xl font-bold text-white tracking-tight">Bienvenido a JUXA AI</h2>
+          <p className="text-slate-400 text-lg">Selecciona tu perfil para personalizar la experiencia jurídica</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 2. Grid de Roles con diseño mejorado */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {ROLES.map((role) => (
             <button
               key={role.id}
               onClick={() => onRoleSelect(role.id)}
-              className="flex items-start p-4 rounded-xl bg-[#0f0f11] border border-white/5 hover:border-blue-500/50 hover:bg-[#151517] transition-all group text-left"
+              className="flex items-center p-5 rounded-2xl bg-[#0f0f11] border border-white/5 hover:border-emerald-500/50 hover:bg-[#151517] transition-all group text-left shadow-xl"
             >
-              <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors mr-4">
+              <div className="p-4 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 mr-5 shadow-inner">
                 {role.icon}
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors">{role.label}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed mt-1">{role.desc}</p>
+                <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                  {role.label}
+                </h3>
+                <p className="text-sm text-slate-500 leading-relaxed mt-1 line-clamp-2">
+                  {role.desc}
+                </p>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-700 group-hover:text-white self-center ml-2" />
+              <ChevronRight className="w-5 h-5 text-slate-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
             </button>
           ))}
         </div>

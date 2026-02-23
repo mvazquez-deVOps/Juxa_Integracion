@@ -3,9 +3,12 @@ import { UserType } from '../types.ts';
 import { motion } from 'framer-motion';
 import { Shield, Zap, Scale, ArrowRight, CheckCircle2, MessageCircle, Mail, ShieldCheck, FileText } from 'lucide-react';
 
+interface LandingProps {
+  onNavigate: (view: 'home' | 'login' |'mode' | 'chat', profile?: UserType) => void;
+  onStartGeneral: () => void;
+}
 
-
-export const Landing: React.FC<LandingProps> = ({ onNavigate }) => {
+export const Landing: React.FC<LandingProps> = ({ onNavigate, onStartGeneral }) => {
   const faqs = [
     { q: "¿Es legalmente vinculante?", a: "Generamos una orientación táctica basada en legislación vigente. Es la base estratégica para que un abogado proceda con éxito." },
     { q: "¿Por qué JUXA?", a: "A diferencia de IAs genéricas, JUXA procesa códigos reales del marco jurídico mexicano para darte una ruta crítica ejecutable." },
