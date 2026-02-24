@@ -10,7 +10,6 @@ import { SentenceGeneratorPanel } from './components/SentenceGeneratorPanel';
 import { generateSentence, digitizeDocument } from './services/geminiService';
 import { SentenceResponse, GenerationState, UserRole, UsageMetadata, AppMode, LegalMatter } from './types';
 import { Cpu, MessageSquare, FileText, Wand2, ArrowRight, LayoutTemplate, Grid, Command, PenTool, FilePlus, Building2, Sparkles, GripVertical, Upload, Bot, Zap, FolderOpen, Briefcase, BrainCircuit, Fingerprint, Layers, ChevronRight, DollarSign } from 'lucide-react';
-import { Landing } from './components/Landing';
 import { ChatArea } from './components/ChatArea';
 import { ChatInput } from './components/ChatInput';
 import { RoleSelection } from './components/RoleSelection';
