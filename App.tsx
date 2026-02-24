@@ -15,7 +15,7 @@ import { ChatArea } from './components/ChatArea';
 import { ChatInput } from './components/ChatInput';
 import { RoleSelection } from './components/RoleSelection';
 import { AuthView } from './components/AuthView';
-import {Message} from './types'; 
+import { Message } from './types';
 
 // === PRICING ENGINE CONSTANTS ===
 // Base Google Cost per 1K Tokens (Approximate Blended)
@@ -71,8 +71,16 @@ function App() {
     };
 
     const handleRoleSelection = (role: string) => {
-        setSelectedRole(role);
+        setSelectedRole(role as any);
         setAppMode(AppMode.CHAT);
+        if (chatMessages.length === 0) {
+    setChatMessages([{
+      id: '1',
+      role: 'assistant',
+      content: `Hola, he configurado tu perfil como ${role}. ¿En qué puedo ayudarte hoy?`,
+      timestamp: new Date()
+    }]);
+  }
     };
 
     const startResizing = (e: React.MouseEvent) => {
@@ -360,7 +368,15 @@ function App() {
                         </p>
 
                         <div className="mt-8">
-                            
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Evita que se dispare dos veces
+                                    onStartGeneral();
+                                }}
+                                className="px-10 py-4 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full font-black text-white hover:scale-105 transition-all shadow-lg shadow-emerald-500/20 pointer-events-auto"
+                            >
+                                INICIAR
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -472,28 +488,23 @@ function App() {
                     />
                 )}
 
-                {/* B. SELECCIÓN DE ROLES (Las cards del repo 2) */}
                 {appMode === AppMode.ROLES && (
                     <div className="flex-1 h-full overflow-y-auto bg-black animate-fade-in">
                         <RoleSelection onRoleSelect={handleRoleSelection} />
                     </div>
                 )}
 
-                {/* C. CHAT (Pantalla completa, sin sidebar a la derecha) */}
                 {appMode === AppMode.CHAT && (
                     <div className="flex-1 h-full bg-[#050505]">
                         <ChatArea
                             selectedRole={selectedRole}
                             onTokenUpdate={updateTokens}
-                            messages={chatMessages} 
+                            messages={chatMessages}
                             setMessages={setChatMessages}
                         />
                     </div>
                 )}
 
-                {/* --- TUS MODOS DE TRABAJO (Recuperados) --- */}
-
-                {/* D. MODO GENERADOR (Sidebar + Documento) */}
                 {appMode === AppMode.GENERATOR && (
                     <>
                         <div
