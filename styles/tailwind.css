@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* Si necesitas animaciones externas */
+@import "tw-animate-css";
